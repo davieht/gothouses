@@ -6,12 +6,20 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.daveloper.gothouses.core.rememberAppState
+import com.daveloper.gothouses.presentation.Screen
+import com.daveloper.gothouses.presentation.detailscreen.DetailScreen
+import com.daveloper.gothouses.presentation.listscreen.ListScreen
 import com.daveloper.gothouses.ui.theme.GoTHousesTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,22 +30,34 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting("Android")
+                    val appState = rememberAppState()
+                    NavHost(
+                        navController = appState.navController,
+                        startDestination = Screen.ListScreen.route
+                    ) {
+
+                        composable(Screen.ListScreen.route) {
+                            ListScreen(appState)
+                        }
+                        composable(
+                            "${Screen.DetailScreen.route}/{id}",
+                            arguments = listOf(
+                                navArgument("id") {
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                }
+                            )
+                        ) {
+                            val id = remember {
+                                it.arguments?.getInt("id") ?: -1
+                            }
+                            DetailScreen(
+                                appState
+                            )
+                        }
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    GoTHousesTheme {
-        Greeting("Android")
     }
 }
